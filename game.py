@@ -10,6 +10,8 @@ SCREEN_Y = 700
 SCREEN = pygame.display.set_mode((SCREEN_X, SCREEN_Y))
 DONE = False
 
+TICKER = 0
+
 PLAYER_SIZE = 45
 PLAYER_COLOR = (0, 128, 255)
 PLAYER_X = 0
@@ -56,7 +58,11 @@ LEVELS = [
         [
             [[1000, 460], [1000, 0], [1024, 0], [1024, 460]],
             [0, 255, 128]
-        ] #Right wall
+        ], #Right wall
+        [
+            [[1000, 460], [1000, 400], [940, 400], [940, 460]],
+            [255, 0, 0]
+        ] #End goal
     ],
     [
         [
@@ -73,12 +79,28 @@ LEVELS = [
         ] #Right wall
     ]
 ]
-
+SPECIAL_OBJECTS = [ #Object types: 0 = Goal| 1 = Enemy
+    [
+        [
+            0,
+            [[1000, 460], [1000, 400], [940, 400], [940, 460]]
+        ]
+    ],
+    [
+        [
+            0,
+            [[1000, 360], [1000, 300], [940, 300], [940, 360]]
+        ]
+    ]
+]
 def next_level(level_num):
     for level_object in LEVELS[level_num]:
         for coord_set in level_object[0]:
             coord_set[0] /= 2
             coord_set[1] /= 2
+        for color in level_object[1]:
+            color /= 2
+    
 
 def init_level_offset():
     for level in LEVELS:
@@ -144,6 +166,12 @@ def collide_generic(x_pos, y_pos, level_num):
         if Point(x_pos, y_pos).within(Polygon(item)): failed += 1
 
     return bool(failed > 0)
+
+def special_object_tests(x_pos, y_pos, size, level_num):
+    for level_object in SPECIAL_OBJECTS[level_num]:
+        if Point(x_pos + size / 2, y_pos + size / 2).within(Polygon(level_object[1])):
+            return level_object[0]
+
 
 CLOCK = pygame.time.Clock()
 
@@ -220,5 +248,12 @@ while not DONE:
     draw_level(LEVEL_NUM, (PLAYER_ACCEL_X, PLAYER_ACCEL_Y))
     draw_player(PLAYER_SIZE, (PLAYER_ACCEL_X, PLAYER_ACCEL_Y), PLAYER_COLOR)
 
+    if TICKER >= 10:
+        result = special_object_tests(PLAYER_X, PLAYER_Y, PLAYER_SIZE, LEVEL_NUM)
+        if result == 0:
+            next_level(LEVEL_NUM)
+            LEVEL_NUM += 1
+    
     pygame.display.flip()
+    TICKER += 1
     CLOCK.tick(60)
