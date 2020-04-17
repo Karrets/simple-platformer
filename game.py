@@ -293,14 +293,29 @@ def player_collision_y(player):
 
 def input_handler(player):
     PRESSED = pygame.key.get_pressed()
+
     if PRESSED[pygame.K_w] or PRESSED[pygame.K_SPACE]:
-        player.set_xy_accel(player.xy_accel[0], player.xy_accel[1] - 1)
+        if LEVELS[Game.level_num].collide(player.xy_pos[0], player.next_pos()[1] + player.size + 1):
+            player.set_xy_accel(player.xy_accel[0], -30)
+        elif LEVELS[Game.level_num].collide(player.xy_pos[0] - 4, player.next_pos()[1] + player.size + 1):
+            player.set_xy_accel(15, -20)
+        if LEVELS[Game.level_num].collide(player.xy_pos[0] + player.size, player.next_pos()[1] + player.size + 1):
+            player.set_xy_accel(player.xy_accel[0], -30)            
+        elif LEVELS[Game.level_num].collide(player.xy_pos[0] + player.size + 4, player.next_pos()[1] + player.size + 1):
+            player.set_xy_accel(-15, -20)
+    
     if PRESSED[pygame.K_a]:
-        player.set_xy_accel(player.xy_accel[0] - 1, player.xy_accel[1])
+        player.set_xy_accel(player.xy_accel[0] - 0.8, player.xy_accel[1])
+    
     if PRESSED[pygame.K_d]:
-        player.set_xy_accel(player.xy_accel[0] + 1, player.xy_accel[1])
-    if PRESSED[pygame.K_s]:
-        player.set_xy_accel(player.xy_accel[0], player.xy_accel[1] + 1)
+        player.set_xy_accel(player.xy_accel[0] + 0.8, player.xy_accel[1])
+
+    if (PRESSED[pygame.K_w] or PRESSED[pygame.K_SPACE]) and player.xy_accel[1] < 0:
+        player.set_xy_accel(player.xy_accel[0], player.xy_accel[1] + 0.9)
+    else:
+        player.set_xy_accel(player.xy_accel[0], player.xy_accel[1] + 1.8)
+
+    player.set_xy_accel(player.xy_accel[0] / 1.05, player.xy_accel[1] / 1.05)
 
     premod_xy_accel = Game.player.xy_accel
 
@@ -369,7 +384,7 @@ def draw_player(game):
 
 CLOCK = pygame.time.Clock()
 Game = GameInstance((1280, 700), False, 0)
-Game.new_player(45, (0, 128, 255), (0, 0), (0, 0))
+Game.new_player(45, (0, 255, 255), (0, 0), (0, 0))
 SCREEN = pygame.display.set_mode(Game.screen_wh)
 
 init_level_render_offset(Game)
