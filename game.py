@@ -1,5 +1,4 @@
 import pygame
-import levels
 from shapely.geometry import Point, Polygon
 #TODO: Get "special objects working, (Enemies?, Level Goal, ETC"
 
