@@ -1,10 +1,9 @@
 import pygame
 from shapely.geometry import Point, Polygon
-#TODO: Get "special objects working, (Enemies?, Level Goal, ETC"
 
-#DrawnRectangle and GameLevel by https://github.com/Jcdiem
+#DrawnRectangle and GameLevel by https://github.com/Jcdiem; Modified to better suit my needs
 class DrawnRectangle:
-    def __init__(self, corner1, corner2, corner3, conrer4, rgb):
+    def __init__(self, corner1, corner2, corner3, corner4, rgb):
         """ Create a rectangle for use and storage with the main game
         Each corner should be an array in [x,y] format
         RGB should be an array in [r,g,b] format
@@ -12,7 +11,11 @@ class DrawnRectangle:
         self.corner1 = corner1
         self.corner2 = corner2
         self.corner3 = corner3
-        self.corner4 = corner4 
+        self.corner4 = corner4
+        self.render_corner1 = corner1
+        self.render_corner2 = corner2
+        self.render_corner3 = corner3
+        self.render_corner4 = corner4 
         self.rgb = rgb
     
     #Returns the RGB array
@@ -22,6 +25,10 @@ class DrawnRectangle:
     #Returns corners X,Y values in order from 1-4
     def getCorners(self):
         return [self.corner1,self.corner2,self.corner3,self.corner4]
+
+    #Return render corners
+    def getCorners(self):
+        return [self.render_corner1,self.render_corner2,self.render_corner3,self.render_corner4]
 
 class GameLevel:
     """Create a game level for parsing
@@ -61,7 +68,7 @@ exampleDebugLevel = GameLevel(0,[#Open bracket for start of levels array
     #New Rect       Corner1    Corner2     Corner3      Corner4    R   G  B
     DrawnRectangle([0, 460], [1024, 460], [1024, 576], [0, 576], [255,128,0]),
     #Platform
-    DrawnRectangle([[0, 300], [300, 300], [300, 350], [0, 350]],[255, 128, 255]),
+    DrawnRectangle([0, 300], [300, 300], [300, 350], [0, 350],[255, 128, 255]),
     #Right Wall
     DrawnRectangle([1000, 460], [1000, 0], [1024, 0], [1024, 460],[255, 128, 0])
     ]#End rectangles
@@ -70,94 +77,22 @@ exampleDebugLevel = GameLevel(0,[#Open bracket for start of levels array
 #Less cluttered version
 exampleDebugNoClutter = GameLevel(0,[
     DrawnRectangle([0, 460], [1024, 460], [1024, 576], [0, 576], [255,128,0]), #Main Floor
-    DrawnRectangle([[0, 300], [300, 300], [300, 350], [0, 350]],[255, 128, 255]), #Platform
+    DrawnRectangle([0, 300], [300, 300], [300, 350], [0, 350],[255, 128, 255]), #Platform
     DrawnRectangle([1000, 460], [1000, 0], [1024, 0], [1024, 460],[255, 128, 0]) #Right Wall
     ])
 
-BETTER_LEVEL_LIST = [
+LEVELS = [
     exampleDebugLevel,
     exampleDebugNoClutter
 ]
 
-def betterLevelIterate():
+def level_iterate():
     curLevel = BETTER_LEVEL_LIST[0]
     for dRectangle in curLevel.getRectangles:
         print(dRectangle.getCorners)
 
 #END EXAMPLE CODE
 
-LEVELS_COLLISION_MAP = [
-    [#DEBUG LEVEL
-        [
-            [0, 460], [1024, 460], [1024, 576], [0, 576]
-        ], #Main Floor
-        [
-            [0, 300], [300, 300], [300, 350], [0, 350]
-        ], #Platform
-        [
-            [1000, 460], [1000, 0], [1024, 0], [1024, 460]
-        ] #Right wall
-    ],
-    [
-        [
-            [0, 460], [1024, 460], [1024, 576], [0, 576]
-        ],
-        [
-            [0, 300], [300, 300], [300, 350], [0, 350]
-        ],
-        [
-            [1000, 460], [1000, 0], [1024, 0], [1024, 460]
-        ]
-    ]
-]
-LEVELS = [
-    [#DEBUG LEVEL
-        [
-            [[0, 460], [1024, 460], [1024, 576], [0, 576]],
-            [255, 128, 0]
-        ], #Main Floor
-        [
-            [[0, 300], [300, 300], [300, 350], [0, 350]],
-            [255, 128, 255]
-        ], #Platform
-        [
-            [[1000, 460], [1000, 0], [1024, 0], [1024, 460]],
-            [0, 255, 128]
-        ], #Right wall
-        [
-            [[1000, 460], [1000, 400], [940, 400], [940, 460]],
-            [255, 0, 0]
-        ] #End goal
-    ],
-    [
-        [
-            [[0, 460], [1024, 460], [1024, 576], [0, 576]],
-            [255, 128, 0]
-        ], #Main Floor
-        [
-            [[0, 300], [300, 300], [300, 350], [0, 350]],
-            [255, 128, 255]
-        ], #Platform
-        [
-            [[1000, 460], [1000, 0], [1024, 0], [1024, 460]],
-            [0, 255, 128]
-        ] #Right wall
-    ]
-]
-SPECIAL_OBJECTS = [ #Object types: 0 = Goal| 1 = Enemy
-    [
-        [
-            0,
-            [[1000, 460], [1000, 400], [940, 400], [940, 460]]
-        ]
-    ],
-    [
-        [
-            0,
-            [[1000, 360], [1000, 300], [940, 300], [940, 360]]
-        ]
-    ]
-]
 def next_level(level_num):
     for level_object in LEVELS[level_num]:
         for coord_set in level_object[0]:
