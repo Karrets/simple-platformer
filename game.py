@@ -3,19 +3,19 @@ from shapely.geometry import Point, Polygon
 
 #Class system made with great help from my friend https://github.com/Jcdiem
 class LevelRect:
-    def __init__(self, corner0, corner1, corner2, corner3, rgb):
+    def __init__(self, corner0, corner1, rgb):
         """ Create a rectangle for use and storage with the main game
         Each corner should be an array in [x,y] format
         RGB should be an array in [r,g,b] format
         """
         self.corner0 = corner0
-        self.corner1 = corner1
-        self.corner2 = corner2
-        self.corner3 = corner3
-        self.render_corner0 = corner0
-        self.render_corner1 = corner1
-        self.render_corner2 = corner2
-        self.render_corner3 = corner3 
+        self.corner1 = [corner0[0], corner1[1]]
+        self.corner2 = corner1
+        self.corner3 = [corner1[0], corner0[1]]
+        self.render_corner0 = self.corner0
+        self.render_corner1 = self.corner1
+        self.render_corner2 = self.corner2
+        self.render_corner3 = self.corner3 
         self.rgb = rgb
     
     #Returns the RGB array
@@ -32,21 +32,27 @@ class LevelRect:
 
     #Used to set new collision values, for example to make a moving platform
     def set_corners(self, new_corner1, new_corner2, new_corner3, new_corner4):
-        self.corner0 = new_corner0
-        self.corner1 = new_corner1
-        self.corner2 = new_corner2
-        self.corner3 = new_corner3
+        self.corner0 = new_corner1
+        self.corner1 = new_corner2
+        self.corner2 = new_corner3
+        self.corner3 = new_corner4
 
     #Return render corners
     def render_corners(self):
-        return [self.render_corner1,self.render_corner2,self.render_corner3,self.render_corner4]
+        return [self.render_corner0,self.render_corner1,self.render_corner2,self.render_corner3]
 
     #Used to set new render positions, does not affect collison handling
     def set_render_corners(self, new_corner1, new_corner2, new_corner3, new_corner4):
-        self.render_corner0 = new_corner0
-        self.render_corner1 = new_corner1
-        self.render_corner2 = new_corner2
-        self.render_corner3 = new_corner3
+        self.render_corner0 = new_corner1
+        self.render_corner1 = new_corner2
+        self.render_corner2 = new_corner3
+        self.render_corner3 = new_corner4
+
+    def get_top_left(self):
+        return self.corner0
+
+    def get_bottom_right(self):
+        return self.corner2
 
 class SpecialObject:
     def __init__(self, corner0, corner1, corner2, corner3, obj_type, rgb):
@@ -101,6 +107,12 @@ class SpecialObject:
         self.render_corner2 = new_corner2
         self.render_corner3 = new_corner3
 
+    def get_top_left(self):
+        return self.corner0
+
+    def get_bottom_right(self):
+        return self.corner3
+
 class GameLevel:
     """Create a game level for parsing
     id should be the numerical value of the level
@@ -123,11 +135,21 @@ class GameLevel:
 
     def collide(self, x_pos, y_pos):
         for item in self.objects:
-            if Point(x_pos, y_pos).within(Polygon(item.corners)):
-                return 1
+            minx = item.get_top_left()[0]
+            miny = item.get_top_left()[1]
+            maxx = item.get_bottom_right()[0]
+            maxy = item.get_bottom_right()[1]
+            if minx <= x_pos <= maxx:
+                if miny <= y_pos <= maxy:
+                    return 1
         for item in self.special_objects:
-            if Point(x_pos, y_pos).within(Polygon(item.corners)):
-                return item.obj_type
+            minx = item.get_top_left()[0]
+            miny = item.get_top_left()[1]
+            maxx = item.get_bottom_right()[0]
+            maxy = item.get_bottom_right()[1]
+            if minx <= x_pos <= maxx:
+                if miny <= y_pos <= maxy:
+                    return item.obj_type
         return 0
 
 class PlayerObject:
@@ -211,36 +233,63 @@ LEVEL_ZERO = GameLevel(0,[
         #Array of level objects
 
         #Main Floor
-        #New Rect  Corner1    Corner2     Corner3      Corner4    R   G  B
-        LevelRect([0, 460], [1024, 460], [1024, 576], [0, 576], [255,128,0]),
+        #New Rect  Corner1    Corner2     R   G  B
+        LevelRect([0, 460], [1024, 576], [255,128,0]),
     
         #Platform
-        #New Rect  Corner1    Corner2    Corner3    Corner4    R    G    B
-        LevelRect([0, 300], [300, 300], [300, 350], [0, 350],[255, 128, 255]),
+        #New Rect  Corner1    Corner2   R    G    B
+        LevelRect([0, 300], [300, 350],[255, 128, 255]),
     
         #Right Wall
-        #New Rect  Corner1      Corner2    Corner3     Corner4     R   G   B
-        LevelRect([1000, 460], [1000, 0], [1024, 0], [1024, 460],[255, 128, 0])
+        #New Rect  Corner1      Corner2    R   G    B
+        LevelRect([1000, 0], [1024, 460],[255, 128, 0])
     ],
     [
         #Level End
         #New Level Goal  Corner1      Corner2    Corner3     Corner4      id   R   G   B
-        SpecialObject([1000, 460], [1000, 400], [1060, 400], [1060, 460], 0, [0, 0, 255])
+        SpecialObject([1000, 400], [1000, 460], [1060, 400], [1060, 460], 0, [0, 0, 255])
     ]
 )
 
 LEVEL_ONE = GameLevel(1,[
-        LevelRect([0, 460], [1024, 460], [1024, 576], [0, 576], [255,128,0]), #Main Floor
-        LevelRect([0, 300], [300, 300], [300, 350], [0, 350],[255, 128, 255]), #Platform
-        LevelRect([1000, 460], [1000, 0], [1024, 0], [1024, 460],[255, 128, 0]) #Right Wall
+        LevelRect([0, 460], [1024, 576], [255,128,0]), #Main Floor
+        LevelRect([0, 300], [300, 350], [255, 128, 255]), #Platform
+        LevelRect([1000, 0], [1024, 460], [255, 128, 0]) #Right Wall
     ],[
-        SpecialObject([1000, 460], [1000, 400], [1060, 400], [1060, 460], 0, [0, 0, 255]) #Level End
+        SpecialObject([1000, 400], [1000, 460], [1060, 400], [1060, 460], 0, [0, 0, 255]) #Level End
     ])
 
 LEVELS = [
     LEVEL_ZERO,
     LEVEL_ONE
 ]
+
+#Chack three vital points
+def player_collision_x(player):
+    failed = 0
+    if LEVELS[Game.level_num].collide(player.next_pos()[0], player.xy_pos[1]) != 0:
+        failed += 1
+    if LEVELS[Game.level_num].collide(player.next_pos()[0] + player.size, player.xy_pos[1]) != 0:
+        failed += 1
+    if LEVELS[Game.level_num].collide(player.next_pos()[0], player.xy_pos[1] + player.size) != 0:
+        failed += 1
+    if LEVELS[Game.level_num].collide(player.next_pos()[0] + player.size, player.xy_pos[1] + player.size) != 0:
+        failed += 1
+
+    return bool(failed > 0)
+
+def player_collision_y(player):
+    failed = 0
+    if LEVELS[Game.level_num].collide(player.xy_pos[0], player.next_pos()[1]) != 0:
+        failed += 1
+    if LEVELS[Game.level_num].collide(player.xy_pos[0] + player.size, player.next_pos()[1]) != 0:
+        failed += 1
+    if LEVELS[Game.level_num].collide(player.xy_pos[0], player.next_pos()[1] + player.size) != 0:
+        failed += 1
+    if LEVELS[Game.level_num].collide(player.xy_pos[0] + player.size, player.next_pos()[1] + player.size) != 0:
+        failed += 1
+
+    return bool(failed > 0)
 
 def input_handler(player):
     PRESSED = pygame.key.get_pressed()
@@ -254,17 +303,76 @@ def input_handler(player):
         player.set_xy_accel(player.xy_accel[0], player.xy_accel[1] + 1)
 
     premod_xy_accel = Game.player.xy_accel
-    while LEVELS[Game.level_num].collide(Game.player.next_pos[0], Game.player.xy_pos[1]) != 0:
+
+    #Fix x accel
+    while player_collision_x(player):
         if premod_xy_accel[0] >= 0:
-            Game.player.set_xy_accel(Game.player.xy_accel[0] - 0.1, Game.player.xy_accel[1])
+            player.set_xy_accel(player.xy_accel[0] - 0.1, player.xy_accel[1])
         if premod_xy_accel[0] < 0:
-            Game.player.set_xy_accel(Game.player.xy_accel[0] + 0.1, Game.player.xy_accel[1])
+            player.set_xy_accel(player.xy_accel[0] + 0.1, player.xy_accel[1])
+
+    #Fix y accel
+    while player_collision_y(player):
+        if premod_xy_accel[1] >= 0:
+            player.set_xy_accel(player.xy_accel[0], player.xy_accel[1] - 0.1)
+        if premod_xy_accel[1] < 0:
+            player.set_xy_accel(player.xy_accel[0], player.xy_accel[1] + 0.1)
     player.update()
+
+def init_level_render_offset(game):
+    for level in LEVELS:
+        for level_object in level.objects:
+            level_object.set_render_corners(
+            (level_object.render_corner0[0] + Game.screen_wh[0] * (3 / 8), + level_object.render_corner0[1] + Game.screen_wh[1] / 2),
+            (level_object.render_corner1[0] + Game.screen_wh[0] * (3 / 8), + level_object.render_corner1[1] + Game.screen_wh[1] / 2),
+            (level_object.render_corner2[0] + Game.screen_wh[0] * (3 / 8), + level_object.render_corner2[1] + Game.screen_wh[1] / 2),
+            (level_object.render_corner3[0] + Game.screen_wh[0] * (3 / 8), + level_object.render_corner3[1] + Game.screen_wh[1] / 2)
+        )
+
+def draw_level(game):
+    for level_object in LEVELS[Game.level_num].objects:
+        level_object.set_render_corners(
+            (level_object.render_corner0[0] - Game.player.xy_accel[0], + level_object.render_corner0[1] - Game.player.xy_accel[1]),
+            (level_object.render_corner1[0] - Game.player.xy_accel[0], + level_object.render_corner1[1] - Game.player.xy_accel[1]),
+            (level_object.render_corner2[0] - Game.player.xy_accel[0], + level_object.render_corner2[1] - Game.player.xy_accel[1]),
+            (level_object.render_corner3[0] - Game.player.xy_accel[0], + level_object.render_corner3[1] - Game.player.xy_accel[1])
+        )
+        pygame.draw.polygon(SCREEN, level_object.rgb, level_object.render_corners())
+
+def draw_player(game):
+    points = [
+        [Game.screen_wh[0] * (3 / 8), Game.screen_wh[1] / 2],
+        [Game.screen_wh[0] * (3 / 8) + Game.player.size, Game.screen_wh[1] / 2],
+        [Game.screen_wh[0] * (3 / 8) + Game.player.size, Game.screen_wh[1] / 2+ Game.player.size],
+        [Game.screen_wh[0] * (3 / 8), Game.screen_wh[1] / 2+ Game.player.size]
+        ]
+
+    softened_speed = [0, 0]
+    if abs(Game.player.xy_accel[0]) <= 1: softened_speed[0] = 0
+    else: softened_speed[0] = Game.player.xy_accel[0]
+
+    if abs(Game.player.xy_accel[1]) <= 1: softened_speed[1] = 0
+    else: softened_speed[1] = Game.player.xy_accel[1]
+
+    points[0][1] -= softened_speed[1] * 0.75
+    points[1][1] -= softened_speed[1] * 0.75
+    points[0][0] += softened_speed[0] * 0.75
+    points[1][0] += softened_speed[0] * 0.75
+
+    tuple_points = [
+        (points[0][0], points[0][1]),
+        (points[1][0], points[1][1]),
+        (points[2][0], points[2][1] + 1),
+        (points[3][0], points[3][1] + 1)
+        ]
+    pygame.draw.polygon(SCREEN, Game.player.rgb, tuple_points)
 
 CLOCK = pygame.time.Clock()
 Game = GameInstance((1280, 700), False, 0)
 Game.new_player(45, (0, 128, 255), (0, 0), (0, 0))
 SCREEN = pygame.display.set_mode(Game.screen_wh)
+
+init_level_render_offset(Game)
 
 while Game.done == False:
     #Create functional quit button
@@ -275,6 +383,8 @@ while Game.done == False:
     SCREEN.fill((50, 100, 255))
 
     input_handler(Game.player)
+    draw_level(Game)
+    draw_player(Game)
 
     pygame.display.flip()
     Game.tick()
