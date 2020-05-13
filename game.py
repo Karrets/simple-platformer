@@ -1,5 +1,4 @@
 import pygame
-from shapely.geometry import Point, Polygon
 
 #Class system made with great help from my friend https://github.com/Jcdiem
 class LevelRect: #This is a basic plarform, it's the main thing in the game.

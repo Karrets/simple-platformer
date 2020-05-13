@@ -1,4 +1,4 @@
 # simple-platformer
 A "simple" platformer in python
 
-Made with pygame and shapely
+Made with pygame and thats it!
